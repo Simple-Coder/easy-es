@@ -9,13 +9,14 @@ import org.dromara.easyes.core.biz.EntityInfo;
 import org.dromara.easyes.core.cache.BaseCache;
 import org.dromara.easyes.core.cache.GlobalConfigCache;
 import org.dromara.easyes.core.config.GlobalConfig;
-import org.dromara.easyes.core.proxy.EsMapperProxy;
+import org.dromara.easyes.starter.proxy.EsMapperProxy;
 import org.dromara.easyes.core.toolkit.EntityInfoHelper;
+import org.dromara.easyes.dynamic.datasource.config.EasyEsDataSourceProperties;
+import org.dromara.easyes.dynamic.datasource.core.DynamicRoutingDataSource;
 import org.dromara.easyes.extension.context.Interceptor;
 import org.dromara.easyes.extension.context.InterceptorChain;
 import org.dromara.easyes.extension.context.InterceptorChainHolder;
-import org.dromara.easyes.starter.config.EasyEsConfigProperties;
-import org.dromara.easyes.starter.factory.IndexStrategyFactory;
+import org.dromara.easyes.starter.factory.IndexStrategyFactoryNew;
 import org.dromara.easyes.starter.service.AutoProcessIndexService;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.FactoryBean;
@@ -34,17 +35,20 @@ import java.util.Optional;
 public class MapperFactoryBean<T> implements FactoryBean<T> {
     private Class<T> mapperInterface;
 
-    @Autowired
-    private RestHighLevelClient client;
+//    @Autowired
+//    private RestHighLevelClient client;
 
     @Autowired
     private ApplicationContext applicationContext;
 
     @Autowired
-    private IndexStrategyFactory indexStrategyFactory;
+    private DynamicRoutingDataSource dynamicRoutingDataSource;
 
-    @Autowired
-    private EasyEsConfigProperties esConfigProperties;
+//    @Autowired
+//    private IndexStrategyFactory indexStrategyFactory;
+
+//    @Autowired
+//    private EasyEsConfigProperties esConfigProperties;
 
     public MapperFactoryBean() {
     }
@@ -55,8 +59,11 @@ public class MapperFactoryBean<T> implements FactoryBean<T> {
 
     @Override
     public T getObject() throws Exception {
+        RestHighLevelClient client = dynamicRoutingDataSource.determinePrimaryDataSource();
+        EasyEsDataSourceProperties esConfigProperties = dynamicRoutingDataSource.determinePrimaryDataSourceprop();
+        IndexStrategyFactoryNew indexStrategyFactory = new IndexStrategyFactoryNew(esConfigProperties);
 
-        EsMapperProxy<T> esMapperProxy = new EsMapperProxy<>(mapperInterface);
+        EsMapperProxy<T> esMapperProxy = new EsMapperProxy<>(mapperInterface, dynamicRoutingDataSource);
 
         // 获取实体类
         Class<?> entityClass = TypeUtils.getInterfaceT(mapperInterface, 0);
@@ -83,9 +90,9 @@ public class MapperFactoryBean<T> implements FactoryBean<T> {
 
                 // 将子文档索引激活为父文档索引
                 if (!DefaultChildClass.class.equals(entityInfo.getChildClass())) {
-                  Optional.ofNullable(entityInfo.getChildClass())
-                          .flatMap(childClass -> Optional.ofNullable(EntityInfoHelper.getEntityInfo(childClass)))
-                          .ifPresent(childEntityInfo -> childEntityInfo.setIndexName(entityInfo.getIndexName()));
+                    Optional.ofNullable(entityInfo.getChildClass())
+                            .flatMap(childClass -> Optional.ofNullable(EntityInfoHelper.getEntityInfo(childClass)))
+                            .ifPresent(childEntityInfo -> childEntityInfo.setIndexName(entityInfo.getIndexName()));
                 }
             }
         } else {

@@ -1,10 +1,11 @@
 package org.dromara.easyes.starter.factory;
 
 
-import org.dromara.easyes.starter.config.EasyEsConfigProperties;
-import org.dromara.easyes.starter.service.AutoProcessIndexService;
 import org.dromara.easyes.common.enums.ProcessIndexStrategyEnum;
 import org.dromara.easyes.common.utils.ExceptionUtils;
+import org.dromara.easyes.dynamic.datasource.config.EasyEsDataSourceProperties;
+import org.dromara.easyes.starter.config.EasyEsConfigProperties;
+import org.dromara.easyes.starter.service.AutoProcessIndexService;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -24,16 +25,16 @@ import java.util.Optional;
  * <p>
  * Copyright © 2022 xpc1024 All Rights Reserved
  **/
-@Component
-@ConditionalOnClass(RestHighLevelClient.class)
-@ConditionalOnProperty(prefix = "easy-es", name = {"enable"}, havingValue = "true", matchIfMissing = true)
-@Deprecated
-public class IndexStrategyFactory implements ApplicationContextAware, InitializingBean {
+public class IndexStrategyFactoryNew implements ApplicationContextAware, InitializingBean {
     /**
      * 配置
      */
-    @Autowired
-    private EasyEsConfigProperties esConfigProperties;
+    private EasyEsDataSourceProperties esConfigProperties;
+
+    public IndexStrategyFactoryNew(EasyEsDataSourceProperties esConfigProperties) {
+        this.esConfigProperties = esConfigProperties;
+    }
+
     /**
      * 预估初始策略工厂容量
      */

@@ -1,5 +1,7 @@
-package org.dromara.easyes.starter.config;
+package org.dromara.easyes.dynamic.datasource.creator;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -8,17 +10,10 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.dromara.easyes.common.utils.ExceptionUtils;
 import org.dromara.easyes.common.utils.RestHighLevelClientBuilder;
 import org.dromara.easyes.common.utils.StringUtils;
+import org.dromara.easyes.dynamic.datasource.config.EasyEsDataSourceProperties;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,28 +24,13 @@ import static org.dromara.easyes.common.constants.BaseEsConstants.COLON;
 import static org.dromara.easyes.common.constants.BaseEsConstants.DEFAULT_SCHEMA;
 
 /**
- * es自动配置
- * <p>
- * Copyright © 2021 xpc1024 All Rights Reserved
- **/
-@Configuration
-@ConditionalOnClass(RestHighLevelClient.class)
-@EnableConfigurationProperties(EasyEsConfigProperties.class)
-@ConditionalOnExpression("'${easy-es.address:x}'!='x'")
-@ConditionalOnProperty(prefix = "easy-es", name = {"enable"}, havingValue = "true", matchIfMissing = true)
-@Deprecated
-public class EsAutoConfiguration {
-    @Autowired
-    private EasyEsConfigProperties easyEsConfigProperties;
-
-    /**
-     * 装配RestHighLevelClient
-     *
-     * @return RestHighLevelClient bean
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public RestHighLevelClient restHighLevelClient() {
+ * Created by xiedong
+ * Date: 2023/12/24 14:35
+ */
+@Slf4j
+@Setter
+public class DefaultDataSourceCreator {
+    public RestHighLevelClient createDataSource(EasyEsDataSourceProperties easyEsConfigProperties) {
         // 处理地址
         String address = easyEsConfigProperties.getAddress();
         if (StringUtils.isEmpty(address)) {
@@ -100,5 +80,4 @@ public class EsAutoConfiguration {
 
         return RestHighLevelClientBuilder.build(builder);
     }
-
 }
